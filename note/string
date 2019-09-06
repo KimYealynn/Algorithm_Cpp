@@ -1,8 +1,0 @@
-
-string ToStr( char c ) {
-   return string( 1, c );
-}
-
-password.insert(index, ToStr(c));
-           
-password.erase(index, 1);

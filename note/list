@@ -1,7 +1,0 @@
-list<char> password;
-list<char>::iterator itr,x;
-
-
- password.insert(itr, c);
-
-itr = password.erase(--itr);
