@@ -1,0 +1,101 @@
+#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+int N, M, S;
+
+typedef struct Shark{
+    int y, x, s, d, z;
+    Shark(int _y, int _x, int _s, int _d, int _z) // 생성자 편함
+    :y(_y), x(_x), s(_s), d(_d), z(_z){ }
+    
+    void move(){
+        int distance = s;
+        if(d < 3) distance %= (2*N - 2); // 반복 피하기 위해 그대로 돌아오는 경우 처리
+        else distance %= (2*M - 2);
+        while(distance > 0){
+            if(d == 1){
+                if(y - distance < 0){distance -= y; y = 0; d = 2; }
+                else{y -= distance; break;}  
+            }
+            if(d == 2){
+                if(y + distance > N-1){distance -= (N-y-1); y = N-1; d = 1; }
+                else{y += distance; break;}
+            }
+            if(d == 3){
+                if(x + distance > M-1){ distance -= (M-x-1); x = M-1; d = 4;}
+                else{x += distance; break;}
+            }
+            if(d == 4){
+                if(x - distance < 0){distance -= x; x = 0; d = 3; }
+                else{x -= distance; break;}
+            }
+        }
+    }
+}Shark;
+
+
+vector<Shark> sharks;
+int map[101][101] = {{0,}, };
+
+int move_get_sharks(int l){
+    int size = 0;
+
+    for(int i = 0; i < sharks.size(); i++){
+        sharks[i].move();
+        Shark s = sharks[i];
+        if(map[s.y][s.x] < s.z) map[s.y][s.x] = s.z; // 상어는 크기가 중복되지 않으므로 
+    }                                       // 가장 큰 크기를 map에 남겨 둠으로서 한자리에 남은 상어 표현가능
+    
+    for(int i = 0; i < N; i++){  // 낚시하는 라인 가장 앞 상어를 0으로 표기
+        if(map[i][l] != 0){
+            size = map[i][l];
+            map[i][l] = 0;
+            break;        
+        }
+    }
+    for(int i = 0; i < sharks.size();){
+        int y = sharks[i].y, x = sharks[i].x, z = sharks[i].z;
+        if(map[y][x] != z) sharks.erase(sharks.begin()+i);// 각 상어의 위치에 있는 값과 
+        else {                                   //그 상어의 크기가 맞지 않으면먹힌거니까 지우고
+            i++;     
+            map[y][x] = 0; //map초기화 하는 시간 줄이려고 맞는 상어 위치에 대해여 0처리
+        }
+    }
+    return size;
+}
+
+int main()
+{
+    int sum_size = 0;
+    int y, x, s, d, z;
+    cin >> N >> M >> S;
+    if(S == 0) {cout << 0 << endl; return 0;} // 이런 경우 꼭 확인하기
+    
+    int closest_shark, min_dist = N;
+    for(int i = 0; i < S; i++){
+        cin >> y >> x >> s >> d >> z;
+        sharks.push_back(Shark(y-1, x-1, s, d, z));
+        if(x-1 == 0){  // 상어를 움직이기 전 맨처음 줄 상어에 대해서 처리 하기 위함
+            if(min_dist > y-1){
+                min_dist = y-1;
+                closest_shark = i;
+            }
+        }
+    }
+    
+    if(min_dist != N){ //맨 처음 줄에 상어 없는거 처리 안했음,,,, 이런거 까먹지 말기
+        sum_size = sharks[closest_shark].z;
+        sharks.erase(sharks.begin() + closest_shark);
+    }
+    
+    for(int i = 1; i < M; i++){
+        if(sharks.size() == 0) break; // 속도 높이기 & 오류 방지
+        sum_size += move_get_sharks(i);
+    }
+    
+    cout << sum_size <<endl;
+    return 0;
+}
